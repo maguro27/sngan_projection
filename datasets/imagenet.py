@@ -2,7 +2,6 @@ import numpy as np
 from PIL import Image
 import chainer
 import random
-import scipy.misc
 
 
 class ImageNetDataset(chainer.dataset.DatasetMixin):
@@ -38,8 +37,9 @@ class ImageNetDataset(chainer.dataset.DatasetMixin):
 
         image = image[:, top:bottom, left:right]
         _, h, w = image.shape
-        image = scipy.misc.imresize(image.transpose(1, 2, 0),
-                                    [self.size, self.size], self.resize_method).transpose(2, 0, 1)
+        #image = scipy.misc.imresize(image.transpose(1, 2, 0), [self.size, self.size], self.resize_method).transpose(2, 0, 1)
+        image = np.asarray(image.transpose(1, 2, 0), dtype="uint8")
+        image = np.asarray(Image.fromarray(image).resize((self.size, self.size), resample=2), dtype=np.float32).transpose(2, 0, 1)
         image = image / 128. - 1.
         image += np.random.uniform(size=image.shape, low=0., high=1. / 128)
         return image
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         preprocess_val = False
 
     dirname_to_label = {}
-    with open('dirname_to_label.txt', 'r') as f:
+    with open('/fs1/groups1/gaa50131/user/tsunashima/gcompress/sngan_projection/datasets/dirname_to_label.txt', 'r') as f:
         for line in f:
             dirname, label = line.strip('\n').split(' ')
             dirname_to_label[dirname] = label
